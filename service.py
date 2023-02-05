@@ -1,6 +1,5 @@
 import os
 from threading import Thread
-from time import sleep
 
 iostat_response = []
 
@@ -69,14 +68,17 @@ def iostat_info():
     bandwidth = []
     for i in range(len(lines)):
         if (7 * i + 3) < len(lines):
-            processor_utility.append((60 * i, lines[7 * i + 3].split()[0].split()[0]))
+            # processor_utility.append((60 * i, lines[7 * i + 3].split()[0].split()[0]))
+            processor_utility.append({"x": 60 * i, "y": lines[7 * i + 3].split()[0].split()[0]})
         if (7 * i + 6) < len(lines):
-            disk_utiliy.append((60 * i, lines[7 * i + 6].split()[-1]))
-            bandwidth.append((60 * i, lines[7 * i + 6].split()[2], lines[7 * i + 6].split()[8]))
+            disk_utiliy.append({"x": 60 * i, "y": lines[7 * i + 6].split()[-1]})
+            # disk_utiliy.append((60 * i, lines[7 * i + 6].split()[-1]))
+            bandwidth.append({"x": 60 * i, "y1": lines[7 * i + 6].split()[2], "y2": lines[7 * i + 6].split()[8]})
+            # bandwidth.append((60 * i, lines[7 * i + 6].split()[2], lines[7 * i + 6].split()[8]))
     iostat_response = []
-    iostat_response.append((1, processor_utility))
-    iostat_response.append((2, disk_utiliy))
-    iostat_response.append((3, bandwidth))
+    iostat_response.append({"diagram": 1, "data": processor_utility})
+    iostat_response.append({"diagram": 2, "data": disk_utiliy})
+    iostat_response.append({"diagram": 3, "data": bandwidth})
     return iostat_response
 
 
