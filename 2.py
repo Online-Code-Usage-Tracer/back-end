@@ -1,7 +1,7 @@
 from typing import Union
 from fastapi import FastAPI, Query
 from fastapi.responses import FileResponse, HTMLResponse, ORJSONResponse
-from service import start_monitor, get_info, iostat_info
+from service import start_monitor, blktrace_info, iostat_info
 
 app = FastAPI()
 
@@ -15,7 +15,6 @@ async def start(url: Union[str, None] = Query(default=None, min_length=3, max_le
 async def monitor_iostat():
     return iostat_info()
 
-@app.get("/monitor/blktrace", response_class=FileResponse)
+@app.get("/monitor/blktrace", response_class=ORJSONResponse)
 async def monitor():
-    get_info()
-    return FileResponse("parsed_trace.txt")
+    return blktrace_info()
