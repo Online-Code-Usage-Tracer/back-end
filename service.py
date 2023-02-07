@@ -229,9 +229,9 @@ def blktrace_info():
     res["11-12"] = sum(x == 11 or x == 12 for x in frequency.values())
     res[">12"] = sum(x > 12 for x in frequency.values())
 
-    blktrace_output.append({"diagram": "Read/Write", "data": {"read": read_sectors, "write": write_sectors}})
-    blktrace_output.append({"diagram": "Read/Write Request Size", "data": {"data":{"read": read, "write": write},
-    "analysis": {"min": {"read": min_read, "write": min_write}, "max": {"read": max_read, "write": max_write}, "avg": {"read": sum_read / read_count, "write": sum_write / write_count}}}})
+    blktrace_output.append({"diagram": "Read/Write", "data": {"Read": read_sectors, "Write": write_sectors}})
+    blktrace_output.append({"diagram": "Read/Write Request Size", "data": {"data":{"Read": read, "Write": write},
+    "analysis": {"Min": {"Read": min_read, "Write": min_write}, "Max": {"Read": max_read, "Write": max_write}, "Avg": {"Read": sum_read / read_count, "Write": sum_write / write_count}}}})
     blktrace_output.append({"diagram": "Read/Write-Intensive", "data": rw_intensive})
     blktrace_output.append({"diagram": "Address Request Frequency", "data": res})
     return blktrace_output
