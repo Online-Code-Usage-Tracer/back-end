@@ -1,11 +1,16 @@
 import os
 from threading import Thread
 from time import time
+from datetime import datetime
 from numpy import Inf
+from tomlkit import date
 
 iostat_response = []
 
 start_time = 0.0
+start_date_time = ""
+dif_time = []
+date_time = []
 
 count = 0
 
@@ -24,13 +29,16 @@ t1 = Thread(target=monitor_iostat)
 t2 = Thread(target=monitor_blktrace)
 
 def start_monitor(url, dataset_name):
-    global start_time, count
+    global start_time, count, start_date_time, date_time
     os.system("echo none > /sys/block/sda/queue/scheduler")
     os.system("sync; echo 3 > /proc/sys/vm/drop_caches")
 
     stop_monitor()
     start_time = time()
+    start_date_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     count = 0
+
+    date_time.append(start_date_time)
 
     t1.start()
     t2.start()
@@ -69,6 +77,7 @@ def start_monitor(url, dataset_name):
         os.system("pip install git+https://github.com/elliottzheng/face-detection.git@master")
     
 def iostat_info():
+    global dif_time
     f = open("iostat.txt")
     with f:
         lines = [line.rstrip() for line in f]
@@ -78,18 +87,18 @@ def iostat_info():
     bandwidth = []
     disk_width = []
 
-    dif_time = time() - start_time
+    dif_time.append(time() - start_time)
 
     for i in range(len(lines)):
         if (7 * i + 3) < len(lines):
             # processor_utility.append((60 * i, lines[7 * i + 3].split()[0].split()[0]))
-            processor_utility.append({"time": dif_time, "% CPU": float(lines[7 * i + 3].split()[0].split()[0])})
+            processor_utility.append({"time": dif_time[i], "% CPU": float(lines[7 * i + 3].split()[0].split()[0])})
         if (7 * i + 6) < len(lines):
-            disk_utiliy.append({"time": dif_time, "% Disk": float(lines[7 * i + 6].split()[-1])})
+            disk_utiliy.append({"time": dif_time[i], "% Disk": float(lines[7 * i + 6].split()[-1])})
             # disk_utiliy.append((60 * i, lines[7 * i + 6].split()[-1]))
-            bandwidth.append({"time": dif_time, "Read (MB/s)": float(lines[7 * i + 6].split()[2]), "Write (MB/s)": float(lines[7 * i + 6].split()[8])})
+            bandwidth.append({"time": dif_time[i], "Read (MB/s)": float(lines[7 * i + 6].split()[2]), "Write (MB/s)": float(lines[7 * i + 6].split()[8])})
             # bandwidth.append((60 * i, lines[7 * i + 6].split()[2], lines[7 * i + 6].split()[8]))
-            disk_width.append({"time": dif_time, "Read (MB/s)": float(lines[7 * i + 6].split()[2]), "Write (MB/s)": float(lines[7 * i + 6].split()[8]), "% Disk": float(lines[7 * i + 6].split()[-1])})
+            disk_width.append({"time": dif_time[i], "Read (MB/s)": float(lines[7 * i + 6].split()[2]), "Write (MB/s)": float(lines[7 * i + 6].split()[8]), "% Disk": float(lines[7 * i + 6].split()[-1])})
             
     iostat_response = []
     iostat_response.append({"diagram": "Processor Utility", "data": processor_utility})
@@ -100,7 +109,7 @@ def iostat_info():
 
 
 def blktrace_info():
-    global count
+    global count, start_date_time, date_time
     os.system("time cat trace.txt | blkparse -i - > parsed_trace.txt")
     count += 1
     if count == 3:
@@ -109,6 +118,13 @@ def blktrace_info():
     with f:
         lines = [line.rstrip() for line in f]
     f.close()
+
+    if len(lines) == 0:
+        return
+
+    end_date_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    date_time.append(end_date_time)
 
     # Read/Write count - Read/Write distribution
     read_sectors = 0
@@ -132,7 +148,8 @@ def blktrace_info():
 
     for i in range(len(lines) - 12):
         line = lines[i].split()
-
+        if (len(line) < 7):
+            break
         if line[6].startswith("R"):
             read_count_interval[int(float(line[3]) / 60)] += 1
         elif line[6].startswith("W"):
@@ -211,13 +228,14 @@ def blktrace_info():
     # Read/Write-Intensive
     rw_intensive = []
     for i in range(len(read_count_interval)):
-        if read_count_interval[i] < write_count_interval[i]:
-            rw_intensive.append("W")
-        elif read_count_interval[i] > write_count_interval[i]:
-            rw_intensive.append("R")
-        else:
-            rw_intensive.append("WR")
+        if read_count_interval[i] != 0 and read_count_interval[i] < write_count_interval[i]:
+            rw_intensive.append({"Start Time": date_time[i], "End Time": date_time[i + 1], "Data": "Write"})
+        elif read_count_interval[i] != 0 and read_count_interval[i] > write_count_interval[i]:
+            rw_intensive.append({"Start Time": date_time[i], "End Time": date_time[i + 1], "Data": "Read"})
+        elif read_count_interval[i] != 0:
+            rw_intensive.append({"Start Time": date_time[i], "End Time": date_time[i + 1], "Data": "Read/Write"})
     
+    start_date_time = end_date_time
 
     # requset frequency
     res = {"1-2": 0,"3-4": 0,"5-6": 0,"7-8": 0,"9-10": 0,"11-12": 0,">12": 0}
@@ -235,6 +253,7 @@ def blktrace_info():
     blktrace_output.append({"diagram": "Read/Write-Intensive", "data": rw_intensive})
     blktrace_output.append({"diagram": "Address Request Frequency", "data": res})
     return blktrace_output
+    # return read_count
     # os.system("cat iostat.txt")
 
 def stop_monitor():
