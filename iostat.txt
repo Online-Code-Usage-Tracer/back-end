@@ -1,15 +1,16 @@
-Linux 5.15.0-58-generic (sajad-book) 	۲۳/۰۲/۱۰ 	_x86_64_	(4 CPU)
+Linux 5.15.0-60-generic (sajad-book) 	۲۳/۰۲/۱۱ 	_x86_64_	(4 CPU)
 
 avg-cpu:  %user   %nice %system %iowait  %steal   %idle
-          19.26    1.50    7.25    0.55    0.00   71.43
+          17.46    2.45    6.63    1.04    0.00   72.42
 
 Device            r/s     rMB/s   rrqm/s  %rrqm r_await rareq-sz     w/s     wMB/s   wrqm/s  %wrqm w_await wareq-sz     d/s     dMB/s   drqm/s  %drqm d_await dareq-sz     f/s f_await  aqu-sz  %util
-sda             19.60      0.90    12.86  39.63    0.56    46.90   14.33      1.04    10.18  41.54    7.69    74.47    0.00      0.00     0.00   0.00    0.00     0.00    0.88    6.71    0.13   3.77
+sda            121.79      5.43    58.03  32.27    0.61    45.67   29.92      1.42    61.65  67.33    0.88    48.66    0.00      0.00     0.00   0.00    0.00     0.00    3.93    1.75    0.11  10.98
 
 
 avg-cpu:  %user   %nice %system %iowait  %steal   %idle
-          35.93    4.89   15.26    0.55    0.00   43.37
+          14.84   11.72    7.43    0.55    0.00   65.47
 
 Device            r/s     rMB/s   rrqm/s  %rrqm r_await rareq-sz     w/s     wMB/s   wrqm/s  %wrqm w_await wareq-sz     d/s     dMB/s   drqm/s  %drqm d_await dareq-sz     f/s f_await  aqu-sz  %util
-sda            109.78      6.20    83.02  43.06    0.45    57.84   11.83      1.74    12.18  50.73    1.24   150.29    0.00      0.00     0.00   0.00    0.00     0.00    0.62    2.03    0.07  11.37
+sda             72.42      4.42    58.95  44.87    0.67    62.48   11.23      1.73    10.62  48.59    1.38   157.35    0.00      0.00     0.00   0.00    0.00     0.00    0.47    2.07    0.06   5.71
+
 

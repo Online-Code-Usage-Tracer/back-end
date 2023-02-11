@@ -77,7 +77,7 @@ def start_monitor(url, dataset_name):
         os.system("pip install git+https://github.com/elliottzheng/face-detection.git@master")
     
 def iostat_info():
-    global dif_time
+    global dif_time, start_time
     f = open("iostat.txt")
     with f:
         lines = [line.rstrip() for line in f]
@@ -92,13 +92,13 @@ def iostat_info():
     for i in range(len(lines)):
         if (7 * i + 3) < len(lines):
             # processor_utility.append((60 * i, lines[7 * i + 3].split()[0].split()[0]))
-            processor_utility.append({"time": dif_time[i], "% CPU": float(lines[7 * i + 3].split()[0].split()[0])})
+            processor_utility.append({"time": f'{dif_time[i]:0.2f}', "% CPU": float(lines[7 * i + 3].split()[0].split()[0])})
         if (7 * i + 6) < len(lines):
-            disk_utiliy.append({"time": dif_time[i], "% Disk": float(lines[7 * i + 6].split()[-1])})
+            disk_utiliy.append({"time": f'{dif_time[i]:0.2f}', "% Disk": float(lines[7 * i + 6].split()[-1])})
             # disk_utiliy.append((60 * i, lines[7 * i + 6].split()[-1]))
-            bandwidth.append({"time": dif_time[i], "Read (MB/s)": float(lines[7 * i + 6].split()[2]), "Write (MB/s)": float(lines[7 * i + 6].split()[8])})
+            bandwidth.append({"time": f'{dif_time[i]:0.2f}', "Read (MB/s)": float(lines[7 * i + 6].split()[2]), "Write (MB/s)": float(lines[7 * i + 6].split()[8])})
             # bandwidth.append((60 * i, lines[7 * i + 6].split()[2], lines[7 * i + 6].split()[8]))
-            disk_width.append({"time": dif_time[i], "Read (MB/s)": float(lines[7 * i + 6].split()[2]), "Write (MB/s)": float(lines[7 * i + 6].split()[8]), "% Disk": float(lines[7 * i + 6].split()[-1])})
+            disk_width.append({"time": f'{dif_time[i]:0.2f}', "Read (MB/s)": float(lines[7 * i + 6].split()[2]), "Write (MB/s)": float(lines[7 * i + 6].split()[8]), "% Disk": float(lines[7 * i + 6].split()[-1])})
             
     iostat_response = []
     iostat_response.append({"diagram": "Processor Utility", "data": processor_utility})
@@ -112,7 +112,7 @@ def blktrace_info():
     global count, start_date_time, date_time
     os.system("time cat trace.txt | blkparse -i - > parsed_trace.txt")
     count += 1
-    if count == 3:
+    if count == 20:
         stop_monitor()
     f = open("parsed_trace.txt")
     with f:
@@ -143,8 +143,8 @@ def blktrace_info():
 
     frequency = {}
 
-    read_count_interval = [0, 0, 0]
-    write_count_interval = [0, 0, 0]
+    read_count_interval = [0 for i in range(20)]
+    write_count_interval = [0 for i in range(20)]
 
     for i in range(len(lines) - 12):
         line = lines[i].split()
@@ -248,10 +248,10 @@ def blktrace_info():
     res[">12"] = sum(x > 12 for x in frequency.values())
 
     blktrace_output.append({"diagram": "Read/Write", "data": {"Read": read_sectors, "Write": write_sectors}})
-    blktrace_output.append({"diagram": "Read/Write Request Size", "data": {"data":{"Read": read, "Write": write},
+    blktrace_output.append({"diagram": "Distribution of I/O Sizes", "data": {"data":{"Read": read, "Write": write},
     "analysis": {"Min": {"Read": min_read, "Write": min_write}, "Max": {"Read": max_read, "Write": max_write}, "Avg": {"Read": sum_read / read_count, "Write": sum_write / write_count}}}})
     blktrace_output.append({"diagram": "Read/Write-Intensive", "data": rw_intensive})
-    blktrace_output.append({"diagram": "Address Request Frequency", "data": res})
+    blktrace_output.append({"diagram": "Access Frequency Distribution (Total R/W)", "data": res})
     return blktrace_output
     # return read_count
     # os.system("cat iostat.txt")
@@ -260,7 +260,7 @@ def stop_monitor():
     with open("1.txt") as f:
         lines = [line.rstrip() for line in f]
     for line in lines:
-        os.system("kill -9 " + str(int(line) - 1))
-        os.system("kill -9 " + line)
+        os.system("kill -15 " + str(int(line) - 1))
+        os.system("kill -15 " + line)
     
 
